@@ -97,12 +97,33 @@ osThreadId_t ResetGlobalHandle;
 const osThreadAttr_t ResetGlobal_attributes = {
   .name = "ResetGlobal",
   .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityLow,
+  .priority = (osPriority_t) osPriorityIdle,
 };
 /* Definitions for DebounceTask */
 osThreadId_t DebounceTaskHandle;
 const osThreadAttr_t DebounceTask_attributes = {
   .name = "DebounceTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for SemaphoreToggle */
+osThreadId_t SemaphoreToggleHandle;
+const osThreadAttr_t SemaphoreToggle_attributes = {
+  .name = "SemaphoreToggle",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for Semaphore_D3 */
+osThreadId_t Semaphore_D3Handle;
+const osThreadAttr_t Semaphore_D3_attributes = {
+  .name = "Semaphore_D3",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityBelowNormal7,
+};
+/* Definitions for MutexDisplayCLR */
+osThreadId_t MutexDisplayCLRHandle;
+const osThreadAttr_t MutexDisplayCLR_attributes = {
+  .name = "MutexDisplayCLR",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
@@ -165,6 +186,9 @@ void Mutex_CountDownTask(void *argument);
 void UpdateGlobDisplayProcess(void *argument);
 void ResetGlobalTask(void *argument);
 void StartDebounce(void *argument);
+void Semaphor_Toggle_Task(void *argument);
+void Semaphore_D3_Task(void *argument);
+void Mutex_Dsp_CLR_task(void *argument);
 void SW_Timer_Countdown(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -280,6 +304,15 @@ int main(void)
 
   /* creation of DebounceTask */
   DebounceTaskHandle = osThreadNew(StartDebounce, NULL, &DebounceTask_attributes);
+
+  /* creation of SemaphoreToggle */
+  SemaphoreToggleHandle = osThreadNew(Semaphor_Toggle_Task, NULL, &SemaphoreToggle_attributes);
+
+  /* creation of Semaphore_D3 */
+  Semaphore_D3Handle = osThreadNew(Semaphore_D3_Task, NULL, &Semaphore_D3_attributes);
+
+  /* creation of MutexDisplayCLR */
+  MutexDisplayCLRHandle = osThreadNew(Mutex_Dsp_CLR_task, NULL, &MutexDisplayCLR_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -637,7 +670,7 @@ void SW_Timer_Task(void *argument)
 	if (osTimerIsRunning(SW_Timer_7SegHandle))
 		osTimerStop(SW_Timer_7SegHandle );
 	else
-		osTimerStart(SW_Timer_7SegHandle , 200);
+		osTimerStart(SW_Timer_7SegHandle , 500);
     osDelay(1);
   }
   /* USER CODE END SW_Timer_Task */
@@ -777,6 +810,73 @@ void StartDebounce(void *argument)
 	     if (buttons_in & B3) { osSemaphoreRelease(Button_3_SemaphoreHandle); }
 	 }
   /* USER CODE END StartDebounce */
+}
+
+/* USER CODE BEGIN Header_Semaphor_Toggle_Task */
+/**
+* @brief Function implementing the SemaphoreToggle thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Semaphor_Toggle_Task */
+void Semaphor_Toggle_Task(void *argument)
+{
+  /* USER CODE BEGIN Semaphor_Toggle_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osSemaphoreAcquire(Button_1_SemaphoreHandle, osWaitForever);
+    HAL_GPIO_TogglePin(LED_D4_GPIO_Port, LED_D4_Pin);
+
+  }
+  /* USER CODE END Semaphor_Toggle_Task */
+}
+
+/* USER CODE BEGIN Header_Semaphore_D3_Task */
+/**
+* @brief Function implementing the Semaphore_D3 thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Semaphore_D3_Task */
+void Semaphore_D3_Task(void *argument)
+{
+  /* USER CODE BEGIN Semaphore_D3_Task */
+  /* Infinite loop */
+  for(;;)
+  {
+	  osSemaphoreAcquire(Button_1_SemaphoreHandle, osWaitForever);
+	  HAL_GPIO_TogglePin(LED_D3_GPIO_Port, LED_D3_Pin);
+  }
+  /* USER CODE END Semaphore_D3_Task */
+}
+
+/* USER CODE BEGIN Header_Mutex_Dsp_CLR_task */
+/**
+* @brief Function implementing the MutexDisplayCLR thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Mutex_Dsp_CLR_task */
+void Mutex_Dsp_CLR_task(void *argument)
+{
+  /* USER CODE BEGIN Mutex_Dsp_CLR_task */
+  /* Infinite loop */
+  for(;;)
+  {
+	  /* This doesn't change the value, it just clears the display  */
+	          /* If asked to display a negative number, the function displays a "--"
+	          */
+	          osMutexWait(UpDownMutexHandle,osWaitForever);
+	          if(mutex_protected_count < 0){
+	        	  MultiFunctionShield_Display_Two_Digits(-1);
+	          }
+
+	          osDelay(200);
+	          osMutexRelease(UpDownMutexHandle);
+	          osDelay(2);
+  }
+  /* USER CODE END Mutex_Dsp_CLR_task */
 }
 
 /* SW_Timer_Countdown function */

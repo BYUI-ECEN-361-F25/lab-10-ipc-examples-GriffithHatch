@@ -80,12 +80,12 @@ Now make sure to write the code inside of the Semaphore_Toggle_Task function tha
 
 <br>
 1. How did your task ‘wait’ for the debounced button? <br>
-<mark>_______________________________________________________ </mark>
+<mark>I used osWaitForever to make the task wait until the debounce was done to toggle D4 </mark>
 <br>
 <br><br>
 
 2.)	How long is the time between the button interrupt coming in and it being enabled again? <br>
-<mark>_______________________________________________________ </mark>
+<mark> Since we are waiting for the button 1 handle and the debounce waits 30 ms I would guess that the wait is around 30 ms. </mark>
 ><br>
 > <br>
 
@@ -96,11 +96,11 @@ Now create a second task (semaphore_Toggle_D3) -- <p>
 
 
 3.)	Do both of (D4 and D3) toggle with a single button press?  Describe the behavior?  <br>
-<mark>_________________________________________________________________________________<br><br>
+<mark>No, D3 toggles first and then the next press will toggle B4.<br><br>
 
 4.)	Now change one of the priorities of these two tasks, re-compile,  and re-run.
 How has the behavior changed?
-<mark>_________________________________________________________________________________<br><br>
+<mark>If D3 has less of a priority than <br><br>
 
 
 ## Part 2: Mutexes
@@ -152,12 +152,12 @@ current count. The first two processes are done for you "Mutex_CountDownTask" an
 >
 ><br>
 >7.)	Comment on the Up/Down/ ”—” display that you see.  <br><br>
-><mark>___________________________________________________________________________________________________________<br><br><p>
+><mark>Putting in the code provided, every time the count would allways flash -- every time the count decreased. This hurt my eyes so I put an if statement to only make it do -- whenever the count was less than 0 which can't happen because of the code in the count down task.<br><br><p>
 
 
 >8.)	Is there a ‘priority’ associated with the Mutex?  If so, how can it be changed?
 ><br>  
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark>There is a priority of sorts. Since all the tasks related to the mutex all have the same freeRTOS priority if you make one higher priority then whenever the mutex is free that task gets first picks while the others have to wait for that task to finish before having a chance of getting the mutex.<br><br>
 <p>
 
 ><br>
@@ -165,7 +165,7 @@ current count. The first two processes are done for you "Mutex_CountDownTask" an
 
 >  Change the priority of the Reset to be osPriorityIdle.  This is the lowest priority available. Note that you will not find this priority type listed in the .ioc configuration, as it is intended to be used for idle threads. This priority must be manually set in the code.<br>
 ><br> Did you see any effect on the ability of Button_3 to reset the count?<br><br>
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark>There was a noticeable delay when hit sometimes and othertimes there is hardly a delay. I assume the delay is caused by the mutex constantly being used by the other 2 tasks and the reset has to wait on those tasks.  <br><br>
 >
 ---
 <!--------------------------------------------------------------------------------->
@@ -196,12 +196,12 @@ display digit.
 >
 >10.) This timer was created via the GUI  (.IOC file).  It’s type is *“osTimerPeriodic”* which means it repeats over and over.<br><br>
 What other options can a Software Timer take to change its Type and operation? <br>
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark>The other option is osTimerOnce meaning the timer only goes once until it is initiated again rather than constantly refreshing when expired.<br><br>
 
 >11).	The debounce for the switches here used an osDelay() call (non-blocking).  Is there any advantage to using a SWTimer here instead?<br>
 > Explain why or why not?
 >
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark>I can't imagine a SWTimer would make much of a difference with the debounce except for possibly needing another line of code or so to make sure the timer is expired before continuing.There is not much of an advantage in this situation.<br><br>
 
 
 <!--------------------------------------------------------------------------------->
